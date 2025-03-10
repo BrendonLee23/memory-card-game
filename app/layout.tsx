@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from 'sonner';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -28,6 +29,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Toaster
+          position="top-center"
+          // toastOptions={{
+          //   style: {
+          //     padding: "12px 20px", // Ajuste o padding conforme necessário
+          //     fontSize: "16px", // Ajuste o tamanho da fonte
+          //     background: "#4F46E5", // Cor do fundo do toast
+          //     color: "#FFFFFF", // Cor do texto
+          //     borderRadius: "8px", // Arredondar os cantos
+          //   },
+          // }}
+        />
       </body>
     </html>
   );
