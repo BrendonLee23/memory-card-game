@@ -1,101 +1,162 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Heart, Star, Sun, Moon, Cloud, Flower2, LucideIcon } from 'lucide-react'
+import { toast } from "sonner"
+
+type MemoryCard = {
+  id: number
+  icon: string
+  isMatched: boolean
+  color: string
+}
+
+const iconConfigs = [
+  { icon: "Heart", component: Heart, color: "text-rose-400" },
+  { icon: "Star", component: Star, color: "text-amber-400" },
+  { icon: "Sun", component: Sun, color: "text-yellow-400" },
+  { icon: "Moon", component: Moon, color: "text-purple-400" },
+  { icon: "Cloud", component: Cloud, color: "text-sky-400" },
+  { icon: "Flower2", component: Flower2, color: "text-emerald-400" }
+]
+
+const createCards = () => {
+  const cards: MemoryCard[] = []
+
+  iconConfigs.forEach(({ icon, color }, index) => {
+    cards.push(
+      { id: index * 2, icon, color, isMatched: false },
+      { id: index * 2 + 1, icon, color, isMatched: false }
+    )
+  })
+
+  return cards.sort(() => Math.random() - 0.5)
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [cards, setCards] = useState<MemoryCard[]>(createCards())
+  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([])
+  const [matches, setMatches] = useState(0)
+  const [isChecking, setIsChecking] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  const handleCardClick = (clickedIndex: number) => {
+    if (isChecking || cards[clickedIndex].isMatched) return
+    if (flippedIndexes.includes(clickedIndex)) return
+    if (flippedIndexes.length === 2) return
+
+    const newFlipped = [...flippedIndexes, clickedIndex]
+    setFlippedIndexes(newFlipped)
+
+    if (newFlipped.length === 2) {
+      setIsChecking(true)
+      const [firstIndex, secondIndex] = newFlipped
+      const firstCard = cards[firstIndex]
+      const secondCard = cards[secondIndex]
+
+      if (firstCard.icon === secondCard.icon) {
+        setTimeout(() => {
+          setCards(cards.map((card) =>
+            card.icon === firstCard.icon ? { ...card, isMatched: true } : card
+          ))
+          setFlippedIndexes([])
+          setMatches(m => m + 1)
+          setIsChecking(false)
+          
+          if (matches === (cards.length / 2) - 1) {
+            toast("🎉 Congratulations! You've found all the matches! 🎈", {
+              className: "bg-purple-900 text-purple-100 border-purple-700"
+            })
+          }
+        }, 500)
+      } else {
+        setTimeout(() => {
+          setFlippedIndexes([])
+          setIsChecking(false)
+        }, 1000)
+      }
+    }
+  }
+
+  const resetGame = () => {
+    setCards(createCards())
+    setFlippedIndexes([])
+    setMatches(0)
+    setIsChecking(false)
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-8 bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-950">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-indigo-300 text-transparent bg-clip-text pb-2">
+          Memory Match Game
+        </h1>
+        <p className="text-indigo-200">
+          Matches found: {matches} of {cards.length / 2}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 md:gap-6 p-6 rounded-xl bg-indigo-950/50 backdrop-blur-sm">
+        {cards.map((card, index) => {
+          const IconComponent = iconConfigs.find(cfg => cfg.icon === card.icon)?.component;
+          return (
+            <motion.div
+              key={card.id}
+              initial={{ rotateY: 0 }}
+              animate={{
+                rotateY: card.isMatched || flippedIndexes.includes(index) ? 180 : 0,
+              }}
+              transition={{ duration: 0.3 }}
+              className="perspective-1000"
+            >
+              <Card
+                className={`relative w-24 h-24 md:w-32 md:h-32 cursor-pointer transform-style-3d transition-all duration-300 ${
+                  card.isMatched
+                    ? "bg-indigo-900/50 border-indigo-400/50"
+                    : flippedIndexes.includes(index)
+                    ? "bg-indigo-800/50 border-indigo-500/50"
+                    : "bg-indigo-950 border-indigo-800 hover:border-indigo-600 hover:bg-indigo-900/80"
+                }`}
+                onClick={() => handleCardClick(index)}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-indigo-500/5 to-white/5" />
+                <AnimatePresence>
+                  {(card.isMatched || flippedIndexes.includes(index)) && IconComponent && (
+                    <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    {IconComponent && (
+                      <IconComponent
+                        className={`w-12 h-12 ${
+                          card.isMatched 
+                            ? `${card.color} filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]` 
+                            : card.color
+                        }`}
+                      />
+                    )}
+                  </motion.div>
+                  
+                  )}
+                </AnimatePresence>
+              </Card>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <Button 
+        onClick={resetGame} 
+        variant="outline" 
+        size="lg"
+        className="bg-indigo-950 border-indigo-700 hover:bg-indigo-900 hover:border-indigo-500 text-indigo-200 hover:text-indigo-100"
+      >
+        Start New Game
+      </Button>
     </div>
   );
 }
