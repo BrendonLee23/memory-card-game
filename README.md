@@ -4,6 +4,12 @@ O **Memory Card Game** é um jogo simples de memória, onde o objetivo é encont
 
 ---
 
+## Deploy
+
+[link](https://memory-card-game-three-pied.vercel.app/)
+
+---
+
 ## Sumário
 
 - [Funcionalidades](#funcionalidades)
